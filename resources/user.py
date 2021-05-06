@@ -5,6 +5,11 @@ from common.db import FLASK_TEST_DB
 from flask_restful import Resource, reqparse
 
 
+class Home(Resource):
+    def get(self):
+        return "This is Home"
+
+
 class UserModel:
     def __init__(self, _id=None, username=None, password=None):
         self.id = _id
