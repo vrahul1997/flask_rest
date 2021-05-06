@@ -30,7 +30,7 @@ def jwt_is_required(realm=None):
     return wrapper
 
 
-# code for sample decorator function
+# sample decorator function
 """
 auth = True
 numbers = [i for i in range(30)]
@@ -55,6 +55,14 @@ def calulate(num_list):
     for i in num_list:
         sum += i
     return sum
+
+funtion
+    wrapper(f)
+    wraps(f)
+        decor(args , kwars)
+
+        return decor
+    return wrapper
 
 
 calulate(numbers)
