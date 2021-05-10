@@ -1,6 +1,6 @@
 import json
 
-from bson.json_util import dumps
+from bson.json_util import dumps, ObjectId
 from common.db import FLASK_TEST_DB
 from flask_jwt import jwt_required
 from flask_restful import Resource
@@ -17,6 +17,17 @@ class StoreModel:
     def find_by_name(self, name):
         store_collection = FLASK_TEST_DB["stores"]
         result = json.loads(dumps(store_collection.find_one({"name": name})))
+        if result:
+            result["_id"] = result["_id"]["$oid"]
+            store = self(**result)
+            return store
+        else:
+            return None
+
+    @classmethod
+    def find_by_id(self, _id):
+        stores_collection = FLASK_TEST_DB["stores"]
+        result = json.loads(dumps(stores_collection.find_one({"_id": _id})))
         if result:
             result["_id"] = result["_id"]["$oid"]
             store = self(**result)

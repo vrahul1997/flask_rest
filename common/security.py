@@ -8,7 +8,6 @@ def authenticate(username, password):
     if user and user.password == password:
         print(vars(user))
         return user
-    pass
 
 
 def identity(payload):

@@ -5,7 +5,10 @@ from common.db import FLASK_TEST_DB
 from flask_jwt import jwt_required
 from flask_restful import Resource, reqparse
 
+from .store import StoreModel
+
 items_collection = FLASK_TEST_DB["items"]
+stores_collection = FLASK_TEST_DB["stores"]
 
 
 class ItemModel:
@@ -59,6 +62,8 @@ class Item(Resource):
                 "name": name,
                 "price": data["price"]
             }
+            if StoreModel.find_by_id(item["store_id"]) is None:
+                return {"message": "No store found"}
             items_collection.insert_one(item)
             return (
                 {
