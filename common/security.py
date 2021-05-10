@@ -1,3 +1,12 @@
+# ##
+# ##
+# ##
+# ##      not needed if flask_JWT_extended is used
+# ##
+# ##
+# ##
+# ##
+
 from resources.user import UserModel
 from flask import request, jsonify
 from functools import wraps
