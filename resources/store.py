@@ -2,7 +2,7 @@ import json
 
 from bson.json_util import dumps, ObjectId
 from common.db import FLASK_TEST_DB
-from flask_jwt import jwt_required
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource
 
 stores_collection = FLASK_TEST_DB["stores"]

@@ -2,7 +2,7 @@ import json
 
 from bson.json_util import ObjectId, dumps
 from common.db import FLASK_TEST_DB
-from flask_jwt import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from flask_restful import Resource, reqparse
 
 from .store import StoreModel
@@ -50,20 +50,23 @@ class Item(Resource):
             item = json.loads(dumps(result))
             return {"item": item}, 200
 
-    @jwt_required()
+    @jwt_required(fresh=True)
     def post(self, name):
         result = items_collection.find_one({"name": name})
         if result is None:
             data = Item.parser.parse_args(
             )  # placed here to maintain error first approach
             print(data)
-            item = {
-                "store_id": ObjectId(data["store_id"]),
-                "name": name,
-                "price": data["price"]
-            }
+            try:
+                item = {
+                    "store_id": ObjectId(data["store_id"]),
+                    "name": name,
+                    "price": data["price"]
+                }
+            except Exception:
+                return {"message": "ObjectId entered is wrong"}
             if StoreModel.find_by_id(item["store_id"]) is None:
-                return {"message": "No store found"}
+                return {"message": "No store found"}, 404
             items_collection.insert_one(item)
             return (
                 {
@@ -75,6 +78,9 @@ class Item(Resource):
 
     @jwt_required()
     def delete(self, name):
+        claims = get_jwt()  #to get the claims in the JWT
+        if not claims["is_admin"]:
+            return {"message": "Admin previlege is required"}, 401
         if items_collection.find_one({"name": name}):
             items_collection.delete_one({"name": name})
             return {
@@ -91,12 +97,17 @@ class Item(Resource):
         data = Item.parser.parse_args()
 
         result = items_collection.find_one({"name": name})
-        item = {
-            "name": name,
-            "price": data["price"],
-            "store_id": ObjectId(data["store_id"])
-        }
+        try:
+            item = {
+                "store_id": ObjectId(data["store_id"]),
+                "name": name,
+                "price": data["price"]
+            }
+        except Exception:
+            return {"message": "ObjectId entered is wrong"}
         if result is None:
+            if StoreModel.find_by_id(item["store_id"]) is None:
+                return {"message": "No store found"}, 404
             items_collection.insert_one(item)
         else:
             items_collection.update_one({"name": name}, {
@@ -112,8 +123,14 @@ class Item(Resource):
 
 
 class ItemList(Resource):
-    @jwt_required()
+    @jwt_required(optional=True)
     def get(self):
+        user_id = get_jwt_identity()
         result = items_collection.find()
-        items = json.loads(dumps(result))
-        return {"items": items}, 200 if items else 404  #not found
+        if user_id:
+            items = json.loads(dumps(result))
+            return {"items": items}, 200
+        return {
+            "items": [names["name"] for names in json.loads(dumps(result))],
+            "message": "More data will be provided if you are logged in"
+        }
